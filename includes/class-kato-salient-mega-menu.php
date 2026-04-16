@@ -87,31 +87,31 @@ class Kato_Salient_Mega_Menu {
         }
 
         wp_enqueue_media();
-        wp_add_inline_script(
-            'jquery-core',
-            "(function($){
-                $(document).on('click', '.kato-menu-media-upload', function(e){
-                    e.preventDefault();
-                    var button = $(this);
-                    var wrap = button.closest('.kato-menu-field-group');
-                    var input = wrap.find('.kato-menu-media-id');
-                    var preview = wrap.find('.kato-menu-media-preview');
-                    var frame = wp.media({ title: 'Select image', button: { text: 'Use image' }, multiple: false });
-                    frame.on('select', function(){
-                        var attachment = frame.state().get('selection').first().toJSON();
-                        input.val(attachment.id);
-                        preview.html('<img src="'+ attachment.url +'" alt="" style="max-width:100%;height:auto;display:block;" />');
-                    });
-                    frame.open();
-                });
-                $(document).on('click', '.kato-menu-media-remove', function(e){
-                    e.preventDefault();
-                    var wrap = $(this).closest('.kato-menu-field-group');
-                    wrap.find('.kato-menu-media-id').val('');
-                    wrap.find('.kato-menu-media-preview').empty();
-                });
-            })(jQuery);"
-        );
+        $inline_script = <<<'JS'
+(function($){
+    $(document).on('click', '.kato-menu-media-upload', function(e){
+        e.preventDefault();
+        var button = $(this);
+        var wrap = button.closest('.kato-menu-field-group');
+        var input = wrap.find('.kato-menu-media-id');
+        var preview = wrap.find('.kato-menu-media-preview');
+        var frame = wp.media({ title: 'Select image', button: { text: 'Use image' }, multiple: false });
+        frame.on('select', function(){
+            var attachment = frame.state().get('selection').first().toJSON();
+            input.val(attachment.id);
+            preview.html('<img src="' + attachment.url + '" alt="" style="max-width:100%;height:auto;display:block;" />');
+        });
+        frame.open();
+    });
+    $(document).on('click', '.kato-menu-media-remove', function(e){
+        e.preventDefault();
+        var wrap = $(this).closest('.kato-menu-field-group');
+        wrap.find('.kato-menu-media-id').val('');
+        wrap.find('.kato-menu-media-preview').empty();
+    });
+})(jQuery);
+JS;
+        wp_add_inline_script( 'jquery-core', $inline_script );
     }
 
     public function register_menu_columns( $columns ) {
@@ -141,7 +141,18 @@ class Kato_Salient_Mega_Menu {
                     </label>
                 </p>
                 <p class="description" style="clear:both;">
-                    <?php echo esc_html__( 'This option should be enabled on a top-level item that is already configured as a Salient mega menu. The first level 2 child becomes the default active item when the panel opens.', 'kato-salient-mega-menu' ); ?>
+                    <?php echo esc_html__( 'Enable this on a top-level item that is already configured as a Salient mega menu. Level 1 hover shows only the level 1 preview image in column 1. Column 3 stays empty until a level 2 item is hovered.', 'kato-salient-mega-menu' ); ?>
+                </p>
+                <p class="field-kato-preview-image description description-wide">
+                    <label>
+                        <?php echo esc_html__( 'Level 1 preview image', 'kato-salient-mega-menu' ); ?>
+                    </label>
+                    <input type="hidden" class="kato-menu-media-id" name="menu-item-kato-preview-image-id[<?php echo esc_attr( $item_id ); ?>]" value="<?php echo esc_attr( $image_id ); ?>" />
+                    <div class="kato-menu-media-preview" style="margin:8px 0;"><?php echo $preview_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+                    <p>
+                        <button type="button" class="button kato-menu-media-upload"><?php echo esc_html__( 'Select image', 'kato-salient-mega-menu' ); ?></button>
+                        <button type="button" class="button-link kato-menu-media-remove"><?php echo esc_html__( 'Remove image', 'kato-salient-mega-menu' ); ?></button>
+                    </p>
                 </p>
             <?php else : ?>
                 <p class="description" style="margin-bottom:8px;">
@@ -281,7 +292,7 @@ trait Kato_Salient_Mega_Menu_Walker_Trait {
         );
 
         $link_atts = array(
-            'href' => ! empty( $top_item->url ) ? $top_item->url : '#',
+            'href'  => ! empty( $top_item->url ) ? $top_item->url : '#',
             'class' => 'sf-with-ul',
         );
 
@@ -293,17 +304,16 @@ trait Kato_Salient_Mega_Menu_Walker_Trait {
             return $output;
         }
 
-        $first_preview = $this->get_menu_preview_data( $level2_items[0] );
-        $output .= '<div class="kato-mega-menu__panel" role="group" aria-label="' . esc_attr( $top_item->title ) . '">';
-        $output .= $this->render_preview_column( $first_preview );
-        $output .= '<div class="kato-mega-menu__col kato-mega-menu__col--level2">';
-        $output .= '<div class="kato-mega-menu__heading kato-mega-menu__heading--level1">' . esc_html( $top_item->title ) . '</div>';
-        $output .= '<ul class="kato-mega-menu__level2-list">';
+        $level1_preview = $this->get_menu_preview_data( $top_item, true );
+        $output        .= '<div class="kato-mega-menu__panel" role="group" aria-label="' . esc_attr( $top_item->title ) . '" data-default-preview-image="' . esc_url( $level1_preview['image_url'] ) . '" data-default-preview-title="' . esc_attr( $level1_preview['title'] ) . '" data-default-preview-link="' . esc_url( $level1_preview['link'] ) . '">';
+        $output        .= $this->render_preview_column( $level1_preview, true );
+        $output        .= '<div class="kato-mega-menu__col kato-mega-menu__col--level2">';
+        $output        .= '<div class="kato-mega-menu__heading kato-mega-menu__heading--level1 is-highlighted">' . esc_html( $top_item->title ) . '</div>';
+        $output        .= '<ul class="kato-mega-menu__level2-list">';
 
-        foreach ( $level2_items as $index => $level2_item ) {
+        foreach ( $level2_items as $level2_item ) {
             $preview = $this->get_menu_preview_data( $level2_item );
-            $active  = 0 === $index ? ' is-active' : '';
-            $output .= '<li class="kato-mega-menu__level2-item' . esc_attr( $active ) . '"';
+            $output .= '<li class="kato-mega-menu__level2-item"';
             $output .= ' data-kato-key="' . esc_attr( $level2_item->ID ) . '"';
             $output .= ' data-preview-image="' . esc_url( $preview['image_url'] ) . '"';
             $output .= ' data-preview-title="' . esc_attr( $preview['title'] ) . '"';
@@ -315,8 +325,8 @@ trait Kato_Salient_Mega_Menu_Walker_Trait {
         }
 
         $output .= '</ul></div>';
-        $output .= '<div class="kato-mega-menu__col kato-mega-menu__col--level3">';
-        $output .= '<div class="kato-mega-menu__level3-target">' . $this->render_level3_group( $level2_items[0] ) . '</div>';
+        $output .= '<div class="kato-mega-menu__col kato-mega-menu__col--level3 is-empty" aria-live="polite">';
+        $output .= '<div class="kato-mega-menu__level3-target"></div>';
         $output .= '</div>';
         $output .= '<div class="kato-mega-menu__templates" hidden>';
         foreach ( $level2_items as $level2_item ) {
@@ -331,11 +341,14 @@ trait Kato_Salient_Mega_Menu_Walker_Trait {
         return $output;
     }
 
-    protected function render_preview_column( array $preview ) {
+    protected function render_preview_column( array $preview, $image_only = false ) {
         $has_image = ! empty( $preview['image_url'] );
         $class     = 'kato-mega-menu__col kato-mega-menu__col--preview';
         if ( ! $has_image ) {
             $class .= ' has-no-image';
+        }
+        if ( $image_only ) {
+            $class .= ' is-image-only';
         }
 
         $output  = '<div class="' . esc_attr( $class ) . '">';
@@ -347,11 +360,9 @@ trait Kato_Salient_Mega_Menu_Walker_Trait {
             $output .= '<span class="kato-mega-menu__preview-image kato-mega-menu__preview-image--placeholder" aria-hidden="true"></span>';
         }
         $output .= '</span>';
-        $output .= '<span class="kato-mega-menu__preview-content">';
+        $output .= '<span class="kato-mega-menu__preview-content' . ( $image_only ? ' is-hidden' : '' ) . '">';
         $output .= '<span class="kato-mega-menu__heading kato-mega-menu__heading--preview">' . esc_html( $preview['title'] ) . '</span>';
-        if ( ! empty( $preview['desc'] ) ) {
-            $output .= '<span class="kato-mega-menu__preview-desc">' . esc_html( $preview['desc'] ) . '</span>';
-        }
+        $output .= '<span class="kato-mega-menu__preview-desc' . ( empty( $preview['desc'] ) ? ' is-hidden' : '' ) . '">' . esc_html( $preview['desc'] ) . '</span>';
         $output .= '<span class="kato-mega-menu__preview-cta">' . esc_html( $preview['cta'] ) . ' <span aria-hidden="true">→</span></span>';
         $output .= '</span>';
         $output .= '</a>';
@@ -379,7 +390,7 @@ trait Kato_Salient_Mega_Menu_Walker_Trait {
         return $output;
     }
 
-    protected function get_menu_preview_data( WP_Post $menu_item ) {
+    protected function get_menu_preview_data( WP_Post $menu_item, $image_only = false ) {
         $title = (string) get_post_meta( $menu_item->ID, Kato_Salient_Mega_Menu::META_PREVIEW_T, true );
         $desc  = (string) get_post_meta( $menu_item->ID, Kato_Salient_Mega_Menu::META_PREVIEW_D, true );
         $cta   = (string) get_post_meta( $menu_item->ID, Kato_Salient_Mega_Menu::META_PREVIEW_C, true );
