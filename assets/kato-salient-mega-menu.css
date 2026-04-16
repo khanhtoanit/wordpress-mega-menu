@@ -1,0 +1,164 @@
+.kato-mega-menu {
+  position: relative;
+}
+
+.kato-mega-menu > .kato-mega-menu__panel {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: min(1180px, calc(100vw - 48px));
+  display: none;
+  gap: 0;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.14);
+  overflow: hidden;
+  z-index: 999;
+}
+
+.kato-mega-menu:hover > .kato-mega-menu__panel,
+.kato-mega-menu.sfHover > .kato-mega-menu__panel,
+.kato-mega-menu:focus-within > .kato-mega-menu__panel {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.2fr) minmax(240px, .9fr) minmax(260px, 1fr);
+}
+
+.kato-mega-menu.align-center > .kato-mega-menu__panel {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.kato-mega-menu.align-right > .kato-mega-menu__panel {
+  left: auto;
+  right: 0;
+}
+
+.kato-mega-menu__col {
+  min-width: 0;
+}
+
+.kato-mega-menu__col--preview {
+  background: #fafafa;
+}
+
+.kato-mega-menu__col--level2,
+.kato-mega-menu__col--level3 {
+  padding: 28px 28px 24px;
+}
+
+.kato-mega-menu__preview-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+.kato-mega-menu__preview-image-wrap {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.kato-mega-menu__preview-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.kato-mega-menu__preview-image--placeholder {
+  background: linear-gradient(135deg, #f1f1f1, #e5e5e5);
+}
+
+.kato-mega-menu__preview-content {
+  display: block;
+  padding: 24px;
+}
+
+.kato-mega-menu__heading {
+  display: block;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #111;
+}
+
+.kato-mega-menu__heading--preview {
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+
+.kato-mega-menu__heading--level1,
+.kato-mega-menu__heading--level2 {
+  font-size: 16px;
+  letter-spacing: .02em;
+  margin-bottom: 18px;
+}
+
+.kato-mega-menu__preview-desc {
+  display: block;
+  color: #5c5c5c;
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.kato-mega-menu__preview-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.kato-mega-menu__level2-list,
+.kato-mega-menu__level3-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.kato-mega-menu__level2-item + .kato-mega-menu__level2-item,
+.kato-mega-menu__level3-item + .kato-mega-menu__level3-item {
+  margin-top: 4px;
+}
+
+.kato-mega-menu__level2-item > a,
+.kato-mega-menu__level3-item > a {
+  display: block;
+  text-decoration: none;
+  color: #222;
+  line-height: 1.5;
+  border-radius: 10px;
+  padding: 10px 12px;
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.kato-mega-menu__level2-item:hover > a,
+.kato-mega-menu__level2-item.is-active > a {
+  background: #f5f5f5;
+  color: #111;
+  transform: translateX(2px);
+}
+
+.kato-mega-menu__level3-item > a:hover {
+  background: #fafafa;
+}
+
+.kato-mega-menu__col--level2 {
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.kato-mega-menu__col--level3 {
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.kato-mega-menu__empty {
+  color: #7a7a7a;
+  font-size: 14px;
+}
+
+@media (max-width: 999px) {
+  .kato-mega-menu > .kato-mega-menu__panel {
+    display: none !important;
+  }
+}
